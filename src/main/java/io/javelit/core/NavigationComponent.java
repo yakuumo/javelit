@@ -25,6 +25,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
+
+import io.javelit.core.helpers.OAuth2Configuration;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +39,8 @@ public final class NavigationComponent extends JtComponent<JtPage> {
   final List<JtPage> pages;
   final JtPage home;
   NavigationPosition position;
+
+  final OAuth2Configuration oAuth2Configuration;
 
   public enum NavigationPosition {
     SIDEBAR,
@@ -54,6 +58,14 @@ public final class NavigationComponent extends JtComponent<JtPage> {
     super(builder, null, // set later in this constructor
           null, builder.position == NavigationPosition.HIDDEN ? JtContainer.MAIN : JtContainer.SIDEBAR);
     final List<JtPage.Builder> homePages = builder.pageBuilders.stream().filter(JtPage.Builder::isHome).toList();
+    this.oAuth2Configuration = builder.oAuth2Configuration;
+
+
+    if(this.oAuth2Configuration != null && !Jt.isLoggedIn()) {
+      final List<JtPage.Builder> loginPages = new ArrayList<>();
+      
+    }
+
     if (homePages.isEmpty()) {
       JtPage.Builder firstPageBuilder = builder.pageBuilders.getFirst();
       firstPageBuilder.home();
@@ -81,6 +93,7 @@ public final class NavigationComponent extends JtComponent<JtPage> {
     }
 
     this.currentValue = page;
+    
   }
 
   private static @NotNull JtPage build404(String currentPath) {
@@ -118,6 +131,7 @@ public final class NavigationComponent extends JtComponent<JtPage> {
 
     private final List<JtPage.Builder> pageBuilders = new ArrayList<>();
     private NavigationPosition position;
+    private OAuth2Configuration oAuth2Configuration;
 
     public Builder(JtPage.Builder... pages) {
       this.userKey = JtComponent.UNIQUE_NAVIGATION_COMPONENT_KEY;
@@ -138,6 +152,11 @@ public final class NavigationComponent extends JtComponent<JtPage> {
      */
     public Builder hidden() {
       position = NavigationComponent.NavigationPosition.HIDDEN;
+      return this;
+    }
+
+    public Builder withOauth2(final @NotNull OAuth2Configuration.Builder oAuth2ConfigurationBuilder) {
+      this.oAuth2Configuration = oAuth2ConfigurationBuilder.build();
       return this;
     }
 
